@@ -1,0 +1,24 @@
+body {
+	
+	text-align: center;
+	background: #DFDFDF;
+
+	margin: 0 30px 100px 30px;
+
+	font: 14px/18px sans-serif;
+}
+
+h1 {
+	font: 50px italic;
+}
+
+canvas {
+	display: block;
+	background: white;
+	border-radius: 20px;
+	margin: 10px auto;
+}
+
+canvas:focus {
+	outline: none;
+}
