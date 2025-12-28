@@ -1,5 +1,8 @@
-const canvas = document.querySelector("canvas");
+const canvas = document.getElementById('d-canvas');
 const ctx = canvas.getContext("2d");
+
+//for clipboard button
+let clipt0 = -501;
 
 //vertices
 let vertexPos = [];
@@ -42,9 +45,6 @@ canvas.addEventListener("dblclick", (e) => {
 		vertexLabel.push(  "" );
 		vertexType.push( 0  );
 	} else {
-		if(caretID) clearInterval( caretID );
-		caretID = 0;
-		
 		vertexType[  i  ] = ( ++vertexType[i] ) & 3;
 	}
 
@@ -73,12 +73,10 @@ canvas.addEventListener("mousedown", (e) => {
 			//select new vertex
 			} else {
 
-				if(vertexType[i] == 0) {
-					caretID = setInterval( () => {
-							caretVisible = !caretVisible;
-							draw();
-							}, 500);
-				}
+				caretID = setInterval( () => {
+						caretVisible = !caretVisible;
+						draw();
+						}, 500);
 
 				select = ["vertex", i];
 				offset = [e.offsetX - vertexPos[i][0], e.offsetY - vertexPos[i][1]];
@@ -98,6 +96,14 @@ canvas.addEventListener("mousedown", (e) => {
 					}, 500);
 			draw();
 			return;
+		}
+
+		if(mouseX > 763 && mouseX < 770 + 17 && mouseY > 17 && mouseY < 49) {
+			                
+			navigator.clipboard.writeText( getMachine()  );
+
+			clipt0 = performance.now();
+			setTimeout( draw, 150);
 		}
 	}
 
@@ -268,6 +274,7 @@ function findVertex(x, y) {
 }
 
 function findEdge(x, y) {
+	
 	for(let i = 0; i < edgeAnchor.length; ++i) {
 
 		let vx1 = vertexPos[ edgeAnchor[i][0] ][0];
@@ -285,7 +292,7 @@ function findEdge(x, y) {
 			//avoid sqrt for fun
 			let dsquared = (dx * ly - dy * lx) * (dx * ly - dy * lx) / (lx * lx + ly * ly);
 
-			if(dsquared < 25 ) return i;
+			if(dsquared < 25  ) return i;
 
 		} else if( edgeAnchor[i][0] != edgeAnchor[i][1] ) {
 			let res = getCircleFromComponents(  i  );
@@ -294,9 +301,11 @@ function findEdge(x, y) {
 
 			let o = (vx2 - vx1) * (y - vy1) - (vy2 - vy1) * (x - vx1) > 0;
 
-			if(d < res[2] + 5 && d > res[2] - 5 && o == edgeOrient[i] ) return i;
-		} else {
+			if(d < res[2] + 5 && d > res[2] - 5  && o == edgeOrient[i] ) {
+				return i;
+			}
 
+		} else {
 			let cx = vx1 + 40 * edgeCenter[i][0];
 			let cy = vy1 + 40 * edgeCenter[i][1];
 
@@ -394,7 +403,7 @@ function drawArrow( a, b, flip) {
 
 function drawCaret( text, textX, textY ) {
 
-	if( !caretVisible) return;
+	if( !caretVisible ) return;
 
 	let labelMeasure = ctx.measureText(  text  );
 
@@ -413,7 +422,7 @@ function draw() {
 
 	ctx.clearRect(0, 0, 800, 600);
 
-	//draw select edge
+	//-------------- draw select edge
 	ctx.strokeStyle = "black";
 	ctx.fillStyle = "black";
 
@@ -481,7 +490,7 @@ function draw() {
 		drawArrow(  [cx, cy, 30], [destX, destY, 25], 0);
 	}
 
-	//draw edges
+	//-------------- - - -- - - - draw edges
 	for(let i = 0; i < edgeAnchor.length; ++i) {
 
 		let x0 = vertexPos[  edgeAnchor[i][0]  ][0];
@@ -586,7 +595,7 @@ function draw() {
 		}
 	}
 
-	//draw vertices
+	//---------------------- draw vertices
 	ctx.textAlign = "center";
 	ctx.textBaseline = "middle";
 
@@ -628,7 +637,76 @@ function draw() {
 	ctx.font = "20px serif";
 
 	//draw caret for vertices
-	if(  select[0] == "vertex") {
+	if(  select[0] == "vertex" && vertexType[select[1]] == 0 ) {
 		drawCaret( vertexLabel[ select[1] ], vertexPos[ select[1] ][0], vertexPos[ select[1] ][1]);
 	}
+
+	// ----------- CLIPBOARD
+	ctx.strokeStyle = "black";
+	if(mouseX > 763 && mouseX < 770 + 17 && mouseY > 17 && mouseY < 49) ctx.strokeStyle = "gray";
+
+	if(  performance.now() - clipt0 < 150 ) ctx.strokeStyle = "green";
+	
+	ctx.beginPath();
+	ctx.roundRect(770, 10, 17, 22, 3);
+	ctx.stroke();
+
+	ctx.beginPath();
+	ctx.roundRect(763, 17, 17, 22, 3);
+	ctx.stroke();
+}
+
+
+
+// GET TURING MACHINE
+
+//encoding works as list of states
+
+//[  [P*A|Q*B*D]    ]
+
+function getMachine() {
+
+	let encoding = "[";
+
+	for( let i = 0; i < edgeAnchor.length; ++i) {
+
+		let trans = edgeLabel[i].split(";");
+
+		for(let j = 0; j < trans.length; ++j) {
+
+			let rule = "[";
+
+			let anch1 = edgeAnchor[i][0];
+			let anch2 = edgeAnchor[i][1];
+
+			let strs = [ vertexLabel[anch1], "START", "na", "na" ];
+			if( vertexType[anch1] > 1 ) {
+				alert("HALT states must have out-degree 0");
+				return "";
+			}
+			rule += strs[ vertexType[anch1] ] + "*";
+
+			trans[j] = trans[j].replace(" ", "");
+			let pred = trans[j].split("/");
+			if( pred.length != 2) {
+				alert("Edge '" + edgeLabel[i] + "' formatted wrong");
+				return "";
+			}
+			rule += pred[0] + "|";
+
+			strs = [  vertexLabel[anch2], "START", "ACCEPT", "REJECT" ];
+			rule += strs[ vertexType[anch2] ] + "*";
+			rule += pred[1].substring(0, 1) + "*";
+
+			rule += (trans[j].slice(-1) == "+")? "1" : "0" ;
+
+			rule += "]";
+
+			encoding += rule;
+		}
+	}
+	
+	encoding += "]";
+
+	return encoding;
 }
