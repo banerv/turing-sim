@@ -5,7 +5,7 @@ body {
 
 	margin: 0 30px 100px 30px;
 
-	font: 14px/18px sans-serif;
+	font: 18px sans-serif;
 }
 
 h1 {
@@ -13,12 +13,32 @@ h1 {
 }
 
 canvas {
+
+
 	display: block;
 	background: white;
 	border-radius: 20px;
 	margin: 10px auto;
+	margin-top: 0px;
+
+	border-top: 8px solid dodgerblue;
 }
 
 canvas:focus {
 	outline: none;
+}
+
+.hidden {
+	display: none;
+}
+
+.activity-option {
+	color: white;
+	background-color: #005CB8;
+	border-radius: 20px 20px 0 0;
+	padding: 10px 60px 10px 60px;
+}
+
+.chosen {
+	background-color: dodgerblue;
 }

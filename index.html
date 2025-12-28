@@ -3,24 +3,29 @@
 
 	<head>
 		<link rel="stylesheet" type="text/css" href="style.css">
-		<title>Turing Machine Designer</title>
+		<title>Turing Machine Simulator</title>
 		<meta charset="utf-8" />
 	</head>
 
 
 	<body>
 
-		<h1>Turing Machine Designer</h1>
+		<h1>Single Tape Turing Machine</h1>
 
+		<div style="display:flex; justify-content:center;">	
 
-		<canvas width="800px" height="600px" tabindex="1"></canvas>
+			<div class="activity-option" tabindex="1" id="d-button">Designer</div>
 
-		<script src="sketch.js"> </script>
+			<div class="activity-option" tabindex="1" id="s-button">Simulator</div>
 
+		</div>
+
+		<canvas width="800px" height="600px" tabindex="1" class="designer" id="d-canvas"></canvas>
+		<canvas width="800px" height="600px" tabindex="1" class="simulator" id="s-canvas"></canvas>
 
 	</body>
 
-	
-
+	<script src="setup.js"> </script>	
+	<script src="designer.js" class="hidden"> </script>
 
 </html>
