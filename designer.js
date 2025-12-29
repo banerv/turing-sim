@@ -652,7 +652,7 @@ function d_draw(timestamp) {
 	dctx.strokeStyle = "black";
 	if(mouseX > 763 && mouseX < 770 + 17 && mouseY > 17 && mouseY < 49) dctx.strokeStyle = "gray";
 
-	if(  performance.now() - clipt0 < 150 ) dctx.strokeStyle = "green";
+	//if(  timestamp - clipt0 < 150 ) dctx.strokeStyle = "green";
 
 	dctx.beginPath();
 	dctx.roundRect(770, 10, 17, 22, 3);
@@ -706,7 +706,8 @@ function getMachine() {
 			rule += strs[ vertexType[anch2] ] + "*";
 			rule += pred[1].substring(0, 1) + "*";
 
-			rule += (trans[j].slice(-1) == "+")? "1" : "0" ;
+			rule += trans[j].slice(-1);
+			//rule += (trans[j].slice(-1) == "+")? "1" : "0" ;
 
 			rule += "]";
 

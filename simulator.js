@@ -101,7 +101,7 @@ function s_draw(timestamp) {
 
 			config[0] = v[0];
 			
-			if(  v[2] == "1" ) config[1] ++;
+			if(  v[2] == "+" ) config[1] ++;
 			else config[1] --;
 
 			if(  config[0] == "ACCEPT" ) {

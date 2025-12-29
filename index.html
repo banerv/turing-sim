@@ -24,23 +24,109 @@
 			</div>
 		</div>
 
-		<div class="simulator">
+
+		<div class="designer">
+		<h1>Usage</h1>
+		<div style="display: flex; justify-content:center;">
+		<ul style="width: 800px; text-align: start">
+			<li>Double-click to add new vertex</li>
+			<li>Double-click on vertex to toggle between normal, START, ACCEPT, and REJECT</li>
+			<li>Click on vertex to select</li>
+			<li>Shift+Drag between vertices to make edge</li>
+			<li>Click on edge to select 
+				<ul>
+					<li>Edge label must be in format
+					'x<sub>1</sub>;x<sub>2</sub>;...x<sub>n</sub>'
+					where x<sub>i</sub> is in the format 'r/w,c'
+					and r, w in Σ, c in {+, -}</li>
+
+					<li>For example, a valid edge label might be, '0/1,+'
+				</ul>
+			</li>
+			<li>Press copy button to copy machine encoding</li>
+			<li>All missing transitions go to REJECT</li>
+		</ul>
+		</div>
+		</div>
+
+		<div class="simulator"> 
+
+		<div>
 		<label>Machine encoding: </label>
 		<input type="text" id="m-form"/>
 		</div>
 
-		<div class="simulator">
+		<div>
 		<label>Input: </label>
 		<input type="text" id="i-form"/>
 		</div>
 
-		<div class="simulator">
+		<div>
 		<label>Animation Speed: x</label>
 		<input type="number" id="s-form" placeholder="1.0"/>
 		</div>
 
-		<div class="simulator">
+		<div>
 		<input type="button" id="s-begin" value="Start Machine">
+		</div>
+
+		<h1>Definitions and Usage</h1>
+
+		<div style="display: flex; justify-content:center;"> 
+		<ul style="width: 800px; text-align: start;">
+			<li>Turing Machine (TM): a simple computer comprised by 
+				<ul>
+				<li>the tape alphabet Γ, a set of symbols that can be written on the tape</li>
+				<li>the input alphabet Σ, a set of symbols that can initialize input on the tape</li>
+				<li>the set of internal machine states Q, which contains START, ACCEPT, and REJECT</li>
+				<li>the blank symbol _</li>
+				<li>the transition function δ : Q x Γ → Q x Γ x {+, -}
+					<ul>
+					<li>Given its current state and the symbol currently being read,
+					the TM will write a symbol at its current position, proceed to
+					 a new internal state, and move one to the right or to the
+					  left along the tape according to this function</li>
+					</ul>
+				</li>
+				</ul>
+
+			<li>The TM stores its configuration as {q, x, y} for q in Q,
+			x,y in Σ<sup>*</sup> where x represents the tape to the left of and including
+			the TM's head and y represents the tape to the right of the TM's head without any trailing blanks</li>
+			</li>
+			<br/>
+
+			<li>Machine Encoding: an encoding of a single-tape Turing Machine
+				<ul>
+				<li>Format: '[x<sub>1</sub>x<sub>2</sub>...x<sub>n</sub>]' where x<sub>i</sub>='[q*a|p*b*c]' for q, p in Q, a, b in Γ, and c in {+,-}
+				<li>In other words, x<sub>i</sub> = '[{current}*{read}|{next}*{write}*{move}]'</li>
+				</ul>
+			</li>
+			<br/>
+
+			<li>Input: the input that populates the tape
+				<ul>
+					<li>Most alphanumeric and special characters are allowed in this simulation</li>
+				</ul>
+			</li>
+			<br/>
+
+			<li>Animation Speed: the number of updates per second</li>
+		</ul>
+		</div>
+
+		<h1>Examples</h1>
+
+		<div style="display: flex; justify-content:center">
+		<ul style="width: 800px; text-align:start;">
+			<li>Recognize {0<sup>n</sup>1<sup>n</sup>0<sup>n</sup> | n &gt; 0}
+			<br/>
+			Encoding: [[v*_|ACCEPT*_*-][v*x|v*$*+][START*x|v*$*+][START*0|s1*$*+][s1*0|s1*0*+][s1*x|s1*x*+][s1*1|s0*x*+][s0*0|r*x*-][s0*1|s0*1*+][s0*x|s0*x*+][r*0|r*0*-][r*1|r*1*-][r*x|r*x*-][r*$|START*$*+]]
+			</li>
+
+		</ul>
+		</div>
+
 		</div>
 
 	</body>
