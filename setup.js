@@ -11,10 +11,10 @@ const dbutton = document.getElementById('d-button');
 const sbutton = document.getElementById('s-button');
 
 //choose dbutton
-dbutton.classList.add('chosen');
+sbutton.classList.add('chosen');
 
 //hide simulators at start
-simulators.forEach(  (thing) => {  thing.classList.add('hidden') } );
+designers.forEach(  (thing) => {  thing.classList.add('hidden') } );
 
 options.forEach(   (opt) => {
 
