@@ -1,5 +1,5 @@
-const canvas = document.getElementById('d-canvas');
-const ctx = canvas.getContext("2d");
+const d_canvas = document.getElementById('d-canvas');
+const dctx = d_canvas.getContext("2d");
 
 //for clipboard button
 let clipt0 = -501;
@@ -33,29 +33,35 @@ let mouseY = -1;
 let shift = 0;
 let allowedLetters = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUWXYZ1234567890`~!@#$%^&*()-_+={}|[]\\;':\",./<>?";
 
-canvas.addEventListener("dblclick", (e) => {
+function getMousePos(e) {
 
-	mouseX = e.offsetX;
-	mouseY = e.offsetY;
+	let rect = d_canvas.getBoundingClientRect();
+
+	mouseX = (e.clientX - rect.left) / (rect.right - rect.left) * d_canvas.width;
+	mouseY = (e.clientY - rect.top) / (rect.bottom - rect.top) * d_canvas.height;
+}
+
+d_canvas.addEventListener("dblclick", (e) => {
+
+	getMousePos(e);
 
 	let i = findVertex( mouseX, mouseY );
 
 	if( i == -1) {
-		vertexPos.push(  [e.offsetX, e.offsetY]  );
+		vertexPos.push(  [mouseX, mouseY]  );
 		vertexLabel.push(  "" );
 		vertexType.push( 0  );
 	} else {
 		vertexType[  i  ] = ( ++vertexType[i] ) & 3;
 	}
 
-	draw();
+	requestAnimationFrame(d_draw);
 });
 
 
-canvas.addEventListener("mousedown", (e) => {
+d_canvas.addEventListener("mousedown", (e) => {
 
-	mouseX = e.offsetX;
-	mouseY = e.offsetY;
+	getMousePos(e);
 	
 	if(caretID) clearInterval( caretID );
 	caretID = 0;
@@ -64,7 +70,7 @@ canvas.addEventListener("mousedown", (e) => {
 
 	if(  e.button == 0) {
 	
-		let i = findVertex(  e.offsetX,  e.offsetY  );
+		let i = findVertex(  mouseX,  mouseY);
 		if(i != -1) {
 			//set anchor
 			if(  shift  ) {
@@ -75,26 +81,26 @@ canvas.addEventListener("mousedown", (e) => {
 
 				caretID = setInterval( () => {
 						caretVisible = !caretVisible;
-						draw();
+						requestAnimationFrame(d_draw);
 						}, 500);
 
 				select = ["vertex", i];
-				offset = [e.offsetX - vertexPos[i][0], e.offsetY - vertexPos[i][1]];
+				offset = [mouseX - vertexPos[i][0], mouseY - vertexPos[i][1]];
 			}
 
-			draw();
+			requestAnimationFrame(d_draw);
 			return;
 		}
 
-		i = findEdge(e.offsetX, e.offsetY);
+		i = findEdge(mouseX, mouseY);
 		if(i != -1 && !shift) {
 			select = ["edge", i];
 			
 			caretID = setInterval( () => {
 					caretVisible = !caretVisible;
-					draw();
+					requestAnimationFrame(d_draw);
 					}, 500);
-			draw();
+			requestAnimationFrame(d_draw);
 			return;
 		}
 
@@ -107,16 +113,15 @@ canvas.addEventListener("mousedown", (e) => {
 		}
 	}
 
-	draw();
+	requestAnimationFrame(d_draw);
 });
 
-canvas.addEventListener("mouseup", (e) => {
+d_canvas.addEventListener("mouseup", (e) => {
 
-	mouseX = e.offsetX;
-	mouseY = e.offsetY;
+	getMousePos(e);
 	
 	if(  selectAnchor != -1) {
-		let i = findVertex(  e.offsetX, e.offsetY  );
+		let i = findVertex(  mouseX , mouseY );
 
 		if(i == selectAnchor) {
 
@@ -144,14 +149,14 @@ canvas.addEventListener("mouseup", (e) => {
 
 });
 
-canvas.addEventListener("mousemove", (e) => {
-	mouseX = e.offsetX;
-	mouseY = e.offsetY;
+d_canvas.addEventListener("mousemove", (e) => {
+
+	getMousePos(e);
 
 	if(  e.buttons != 0) {
 		if( select[0] == "vertex"  ) {
 			
-			vertexPos[select[1]] = [e.offsetX - offset[0], e.offsetY - offset[1]];
+			vertexPos[select[1]] = [mouseX - offset[0], mouseY - offset[1]];
 
 		} else if(select[0] == "edge" ) {
 			let anch1 = edgeAnchor[select[1]][0];
@@ -197,10 +202,10 @@ canvas.addEventListener("mousemove", (e) => {
 		}
 	}
 
-	draw();
+	requestAnimationFrame(d_draw);
 });
 
-canvas.addEventListener("keydown", (e) => {
+d_canvas.addEventListener("keydown", (e) => {
 
 	e.preventDefault();
 
@@ -221,8 +226,9 @@ canvas.addEventListener("keydown", (e) => {
 
 		} else if( vertexType[  select[1] ] == 0) {
 			if(e.key == "Backspace") {
-				vertexLabel[  select[1]  ] = vertexLabel[select[1]].substring(0,
-						vertexLabel[select[1]].length-1);
+
+				vertexLabel[  select[1]  ] = vertexLabel[  select[1]  ].slice(0, -1);
+
 			} else if( allowedLetters.indexOf(e.key) != -1) {
 				vertexLabel[ select[1]  ] += e.key;
 			}
@@ -246,18 +252,17 @@ canvas.addEventListener("keydown", (e) => {
 
 		} else if(e.key == "Backspace") {
 
-			edgeLabel[  select[1]  ] = edgeLabel[select[1]].substring(0,
-					edgeLabel[select[1]].length-1);
+			edgeLabel[  select[1]  ] = edgeLabel[  select[1]  ].slice(0, -1);
 
 		} else if( allowedLetters.indexOf(e.key) != -1) {
 			edgeLabel[ select[1]  ] += e.key;
 		}
 	}
 
-	draw();
+	requestAnimationFrame(d_draw);
 });
 
-canvas.addEventListener("keyup", (e) => {
+d_canvas.addEventListener("keyup", (e) => {
 
 	shift = e.shiftKey;
 
@@ -289,10 +294,13 @@ function findEdge(x, y) {
 			let lx = vx2 - vx1;
 			let ly = vy2 - vy1;
 
-			//avoid sqrt for fun
+			//perp comp
 			let dsquared = (dx * ly - dy * lx) * (dx * ly - dy * lx) / (lx * lx + ly * ly);
 
-			if(dsquared < 25  ) return i;
+			//par comp
+			let par = (dx * lx + dy * ly) / (lx * lx + ly * ly);
+
+			if( dsquared < 25 && Math.abs(par) <= 1) return i;
 
 		} else if( edgeAnchor[i][0] != edgeAnchor[i][1] ) {
 			let res = getCircleFromComponents(  i  );
@@ -394,37 +402,37 @@ function drawArrow( a, b, flip) {
 	let cornX1 = arrX0 + 15 * (arrX1 - arrX0) / arrD - 7 * (arrY0 - arrY1) / arrD;
 	let cornY1 = arrY0 + 15 * (arrY1 - arrY0) / arrD - 7 * (arrX1 - arrX0) / arrD;
 
-	ctx.beginPath();
-	ctx.moveTo( arrX0, arrY0);
-	ctx.lineTo( cornX0, cornY0);
-	ctx.lineTo( cornX1, cornY1 );
-	ctx.fill();
+	dctx.beginPath();
+	dctx.moveTo( arrX0, arrY0);
+	dctx.lineTo( cornX0, cornY0);
+	dctx.lineTo( cornX1, cornY1 );
+	dctx.fill();
 }
 
 function drawCaret( text, textX, textY ) {
 
 	if( !caretVisible ) return;
 
-	let labelMeasure = ctx.measureText(  text  );
+	let labelMeasure = dctx.measureText(  text  );
 
 	let r = labelMeasure.actualBoundingBoxRight;
 	let u = labelMeasure.fontBoundingBoxAscent;
 	let d = labelMeasure.fontBoundingBoxDescent;
 
-	ctx.strokeStyle = "blue";
-	ctx.beginPath();
-	ctx.moveTo(textX + r + 2, textY - u);
-	ctx.lineTo(textX + r + 2, textY + d);
-	ctx.stroke();
+	dctx.strokeStyle = "blue";
+	dctx.beginPath();
+	dctx.moveTo(textX + r + 2, textY - u);
+	dctx.lineTo(textX + r + 2, textY + d);
+	dctx.stroke();
 }
 
-function draw() {
+function d_draw(timestamp) {
 
-	ctx.clearRect(0, 0, 800, 600);
+	dctx.clearRect(0, 0, 800, 600);
 
 	//-------------- draw select edge
-	ctx.strokeStyle = "black";
-	ctx.fillStyle = "black";
+	dctx.strokeStyle = "black";
+	dctx.fillStyle = "black";
 
 	let potAnchor = findVertex( mouseX, mouseY );
 	if(  selectAnchor != -1 && potAnchor != selectAnchor) {
@@ -448,10 +456,10 @@ function draw() {
 			destY = vy0 + 30 * (sy - vy0) / d;
 		}
 
-		ctx.beginPath();
-		ctx.moveTo(  sx, sy);
-		ctx.lineTo(  destX, destY );
-		ctx.stroke();
+		dctx.beginPath();
+		dctx.moveTo(  sx, sy);
+		dctx.lineTo(  destX, destY );
+		dctx.stroke();
 
 		//draw straight arrow
 		let d = Math.sqrt( (sx - destX) * (sx - destX) + (sy - destY) * (sy - destY) );
@@ -462,11 +470,11 @@ function draw() {
 		let cornX1 = destX + 15 * (sx - destX) / d - 7 * (destY - sy) / d;
 		let cornY1 = destY + 15 * (sy - destY) / d - 7 * (sx - destX) / d;
 
-		ctx.beginPath();
-		ctx.moveTo( destX, destY );
-		ctx.lineTo( cornX0, cornY0 );
-		ctx.lineTo( cornX1, cornY1 );
-		ctx.fill();
+		dctx.beginPath();
+		dctx.moveTo( destX, destY );
+		dctx.lineTo( cornX0, cornY0 );
+		dctx.lineTo( cornX1, cornY1 );
+		dctx.fill();
 	} else if(selectAnchor != -1) {
 		let cx = vertexPos[selectAnchor][0];
 		let cy = vertexPos[selectAnchor][1];
@@ -481,10 +489,10 @@ function draw() {
 
 		let destX = cx + 40 * dirX;
 		let destY = cy + 40 * dirY;
-	
-		ctx.beginPath();
-		ctx.arc(  destX, destY, 25, 0, 2 * Math.PI);
-		ctx.stroke();
+
+		dctx.beginPath();
+		dctx.arc(  destX, destY, 25, 0, 2 * Math.PI);
+		dctx.stroke();
 
 		//arrow
 		drawArrow(  [cx, cy, 30], [destX, destY, 25], 0);
@@ -500,40 +508,40 @@ function draw() {
 		let y1 = vertexPos[  edgeAnchor[i][1]  ][1];
 
 		if(edgeType[i] == "straight") {
-			ctx.strokeStyle = (select[0] == "edge" && select[1] == i)? "blue" : "black";
+			dctx.strokeStyle = (select[0] == "edge" && select[1] == i)? "blue" : "black";
 
-			ctx.beginPath();
-			ctx.moveTo( x0, y0);
-			ctx.lineTo( x1, y1);
-			ctx.stroke();
+			dctx.beginPath();
+			dctx.moveTo( x0, y0);
+			dctx.lineTo( x1, y1);
+			dctx.stroke();
 
 			let d = Math.sqrt( (x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1) );
 
 			let textX = (x0 + x1)/2 + (20 * (y0 - y1) / d) * (edgeOrient[i]? 1 : -1);
 			let textY = (y0 + y1)/2 + (20 * (x1 - x0) / d) * (edgeOrient[i]? 1 : -1);
-	
-			ctx.fillStyle = "black";
-			ctx.fillText(  edgeLabel[i], textX, textY );
+
+			dctx.fillStyle = "black";
+			dctx.fillText(  edgeLabel[i], textX, textY );
 
 			//arrow (circ has rad 30, arrow has len 15, width 20)
 			let cornX0 = x1 + (15 + 30)  * (x0 - x1) / d + 7 * (y1 - y0) / d;
 			let cornY0 = y1 + (15 + 30)  * (y0 - y1) / d + 7 * (x0 - x1) / d;
-			
+
 			let cornX1 = x1 + (15 + 30)  * (x0 - x1) / d - 7 * (y1 - y0) / d;
 			let cornY1 = y1 + (15 + 30)  * (y0 - y1) / d - 7 * (x0 - x1) / d;
 
-			ctx.beginPath();
-			ctx.moveTo( x1 + 30 * (x0 - x1) / d, y1 + 30 * (y0 - y1) / d);
-			ctx.lineTo( cornX0, cornY0);
-			ctx.lineTo( cornX1, cornY1);
-			ctx.fill();
+			dctx.beginPath();
+			dctx.moveTo( x1 + 30 * (x0 - x1) / d, y1 + 30 * (y0 - y1) / d);
+			dctx.lineTo( cornX0, cornY0);
+			dctx.lineTo( cornX1, cornY1);
+			dctx.fill();
 
 			if( select[0] == "edge" && select[1] == i) {
 				drawCaret(  edgeLabel[i], textX, textY);
 			}
 
 		} else if(  edgeAnchor[i][0] != edgeAnchor[i][1]) {
-			ctx.strokeStyle = (select[0] == "edge" && select[1] == i)? "blue" : "black";
+			dctx.strokeStyle = (select[0] == "edge" && select[1] == i)? "blue" : "black";
 
 			res = getCircleFromComponents( i );
 
@@ -548,9 +556,9 @@ function draw() {
 			else if( !edgeOrient[i] && (angle2 < angle3 && angle3 < angle1) ) angle3 += Math.PI;
 
 			//arrow
-			ctx.beginPath();
-			ctx.arc( res[0], res[1], res[2], angle1, angle2, edgeOrient[i] );
-			ctx.stroke();
+			dctx.beginPath();
+			dctx.arc( res[0], res[1], res[2], angle1, angle2, edgeOrient[i] );
+			dctx.stroke();
 
 			//arrow head
 			drawArrow( [ x1, y1, 30  ], [res[0], res[1], res[2]], edgeOrient[i] );
@@ -559,25 +567,25 @@ function draw() {
 			let textX = (res[2] + 15) * Math.cos(angle3) + res[0];
 			let textY = (res[2] + 15) * Math.sin(angle3) + res[1];
 
-			ctx.fillStyle = "black";
-			ctx.fillText(  edgeLabel[i], textX, textY );
+			dctx.fillStyle = "black";
+			dctx.fillText(  edgeLabel[i], textX, textY );
 
 			if(  select[0] == "edge" && select[1] == i) {
 				drawCaret(  edgeLabel[i], textX,  textY  );
 			}
-		
+
 		} else {
-			ctx.strokeStyle = (select[0] == "edge" && select[1] == i)? "blue" : "black";
-			
+			dctx.strokeStyle = (select[0] == "edge" && select[1] == i)? "blue" : "black";
+
 			let cx = vertexPos[edgeAnchor[i][0]][0];
 			let cy = vertexPos[edgeAnchor[i][0]][1];
 
 			let destX = 40 * edgeCenter[i][0] + cx;
 			let destY = 40 * edgeCenter[i][1] + cy;
-	
-			ctx.beginPath();
-			ctx.arc(  destX, destY, 25, 0, 2 * Math.PI);
-			ctx.stroke();
+
+			dctx.beginPath();
+			dctx.arc(  destX, destY, 25, 0, 2 * Math.PI);
+			dctx.stroke();
 
 			//draw arrow
 			drawArrow(  [ cx, cy, 30], [ destX, destY, 25], 0);
@@ -586,8 +594,8 @@ function draw() {
 			let textX = cx + (40 + 25 + 15) * edgeCenter[i][0];
 			let textY = cy + (40 + 25 + 15) * edgeCenter[i][1];
 
-			ctx.fillStyle = "black";
-			ctx.fillText(  edgeLabel[i], textX, textY );
+			dctx.fillStyle = "black";
+			dctx.fillText(  edgeLabel[i], textX, textY );
 
 			if(select[0] == "edge" && select[1] == i) {
 				drawCaret(  edgeLabel[i], textX,  textY  );
@@ -596,45 +604,44 @@ function draw() {
 	}
 
 	//---------------------- draw vertices
-	ctx.textAlign = "center";
-	ctx.textBaseline = "middle";
+	dctx.textAlign = "center";
+	dctx.textBaseline = "middle";
 
 	for(let i = 0; i < vertexPos.length; ++i) {
 
-		ctx.font = (vertexType[i] == 0) ? "20px serif" : "12px serif";
+		dctx.font = (vertexType[i] == 0) ? "20px serif" : "12px serif";
 
 		if(   vertexType[i] == 0) {
-			ctx.strokeStyle = (select[0] == "vertex" && select[1] == i)? "blue" : "black";
+			dctx.strokeStyle = (select[0] == "vertex" && select[1] == i)? "blue" : "black";
 		} else if(  vertexType[i] == 1 ) {
-			ctx.strokeStyle = "black";
+			dctx.strokeStyle = "black";
 		} else if(  vertexType[i] == 2) {
-			ctx.strokeStyle = "green";
+			dctx.strokeStyle = "green";
 		} else if(  vertexType[i] == 3) {
-			ctx.strokeStyle = "red";
+			dctx.strokeStyle = "red";
 		}
 
-		ctx.beginPath();
-		ctx.arc( vertexPos[i][0], vertexPos[i][1], 30, 0, 2*Math.PI );
-		ctx.fillStyle = "white";
-		ctx.fill();
-		ctx.stroke();
+		dctx.beginPath();
+		dctx.arc( vertexPos[i][0], vertexPos[i][1], 30, 0, 2*Math.PI );
+		dctx.fillStyle = "white";
+		dctx.fill();
+		dctx.stroke();
 
 		if(  vertexType[i] > 1 ) {
-			ctx.beginPath();
-			ctx.arc( vertexPos[i][0], vertexPos[i][1], 25, 0, 2*Math.PI );
-			ctx.fillStyle = "white";
-			ctx.fill();
-			ctx.stroke();
+			dctx.beginPath();
+			dctx.arc( vertexPos[i][0], vertexPos[i][1], 25, 0, 2*Math.PI );
+			dctx.fillStyle = "white";
+			dctx.fill();
+			dctx.stroke();
 		}
 
-		ctx.setLineDash([]);
-		ctx.fillStyle = "black";
+		dctx.fillStyle = "black";
 
 		let texts = [  vertexLabel[i], "START", "ACCEPT", "REJECT" ];
 
-		ctx.fillText(  texts[ vertexType[i]  ], vertexPos[i][0], vertexPos[i][1] );
+		dctx.fillText(  texts[ vertexType[i]  ], vertexPos[i][0], vertexPos[i][1] );
 	}
-	ctx.font = "20px serif";
+	dctx.font = "20px serif";
 
 	//draw caret for vertices
 	if(  select[0] == "vertex" && vertexType[select[1]] == 0 ) {
@@ -642,18 +649,19 @@ function draw() {
 	}
 
 	// ----------- CLIPBOARD
-	ctx.strokeStyle = "black";
-	if(mouseX > 763 && mouseX < 770 + 17 && mouseY > 17 && mouseY < 49) ctx.strokeStyle = "gray";
+	dctx.strokeStyle = "black";
+	if(mouseX > 763 && mouseX < 770 + 17 && mouseY > 17 && mouseY < 49) dctx.strokeStyle = "gray";
 
-	if(  performance.now() - clipt0 < 150 ) ctx.strokeStyle = "green";
-	
-	ctx.beginPath();
-	ctx.roundRect(770, 10, 17, 22, 3);
-	ctx.stroke();
+	if(  performance.now() - clipt0 < 150 ) dctx.strokeStyle = "green";
 
-	ctx.beginPath();
-	ctx.roundRect(763, 17, 17, 22, 3);
-	ctx.stroke();
+	dctx.beginPath();
+	dctx.roundRect(770, 10, 17, 22, 3);
+	dctx.stroke();
+
+	dctx.beginPath();
+	dctx.roundRect(763, 17, 17, 22, 3);
+	dctx.stroke();
+
 }
 
 
@@ -705,7 +713,7 @@ function getMachine() {
 			encoding += rule;
 		}
 	}
-	
+
 	encoding += "]";
 
 	return encoding;

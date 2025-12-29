@@ -13,19 +13,42 @@
 		<h1>Single Tape Turing Machine</h1>
 
 		<div style="display:flex; justify-content:center;">	
-
 			<div class="activity-option" tabindex="1" id="d-button">Designer</div>
-
 			<div class="activity-option" tabindex="1" id="s-button">Simulator</div>
-
 		</div>
 
+		<div style="display:flex; justify-content:center; width: 100%">
+			<div class="canvas-container">
 		<canvas width="800px" height="600px" tabindex="1" class="designer" id="d-canvas"></canvas>
 		<canvas width="800px" height="600px" tabindex="1" class="simulator" id="s-canvas"></canvas>
+			</div>
+		</div>
+
+		<div class="simulator">
+		<label>Machine encoding: </label>
+		<input type="text" id="m-form"/>
+		</div>
+
+		<div class="simulator">
+		<label>Input: </label>
+		<input type="text" id="i-form"/>
+		</div>
+
+		<div class="simulator">
+		<label>Animation Speed: x</label>
+		<input type="number" id="s-form" placeholder="1.0"/>
+		</div>
+
+		<div class="simulator">
+		<input type="button" id="s-begin" value="Start Machine">
+		</div>
 
 	</body>
 
 	<script src="setup.js"> </script>	
-	<script src="designer.js" class="hidden"> </script>
+	
+	<script src="designer.js"> </script>
+
+	<script src="simulator.js"> </script>
 
 </html>
